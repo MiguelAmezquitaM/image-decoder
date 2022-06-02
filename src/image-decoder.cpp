@@ -3,27 +3,20 @@ extern "C" {
 }
 
 #include <image-decoder.hpp>
-
-#include <memory>
 #include <cmath>
 #include <stdexcept>
 
 namespace imd {
 
-	struct Image {
-		Image(uint32_t w, uint32_t h)
-			: width{ w }, height{ h }, data{ std::make_unique<uint32_t[]>(h * w) } {}
+	Image::Image(uint32_t w, uint32_t h)
+		: width{ w }, height{ h }, data{ std::make_unique<uint32_t[]>(h * w) } {}
 
-		Image(uint32_t w, uint32_t h, uint32_t* p)
-			: width{ w }, height{ h }, data{ p } {}
+	Image::Image(uint32_t w, uint32_t h, uint32_t* p)
+		: width{ w }, height{ h }, data{ p } {}
 
-		~Image() {}
+	Image::~Image() {}
 
-		uint32_t width, height;
-		std::unique_ptr<uint32_t[]> data;
-	};
-
-	Image read_image(const char* img_path) {
+	Image& read_image_path(const char* img_path) {
 		png_image image{};
 
 		image.version = PNG_IMAGE_VERSION;
@@ -34,7 +27,7 @@ namespace imd {
 			auto buffer = std::make_unique<uint32_t[]>(PNG_IMAGE_SIZE(image));
 
 			if (buffer and png_image_finish_read(&image, nullptr, buffer.get(), 0, nullptr)) {
-				return Image{ image.width, image.height, buffer.release() };
+				return *new Image{ image.width, image.height, buffer.release() };
 			}
 		}
 		throw std::logic_error("No such file or directory");
